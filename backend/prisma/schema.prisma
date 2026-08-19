@@ -1,0 +1,27 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  senha     String
+  createdAt DateTime @default(now())
+}
+
+model Titulo {
+  id        String   @id @default(uuid())
+  titulo    String
+  tipo      String   // "filme" ou "serie"
+  generos   String   @db.Text
+  sinopse   String   @db.Text
+  nota      Float
+  ano       Int
+  posterUrl String   @db.Text
+  createdAt DateTime @default(now())
+}

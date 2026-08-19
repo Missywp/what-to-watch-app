@@ -1,0 +1,26 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-main);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+}
+
+.emptyState {
+  max-width: 1200px;
+  margin: 3rem auto;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 1rem;
+  background-color: rgba(25, 25, 14, 0.4);
+}
+
+.emptyText {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}

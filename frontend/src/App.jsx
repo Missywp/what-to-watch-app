@@ -1,122 +1,182 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect, useCallback } from "react";
+import Navbar from "./components/Navbar";
+import FilterBar from "./components/FilterBar";
+import CarouselSection from "./components/CarouselSection";
+import MovieModal from "./components/MovieModal";
+import LoginModal from "./components/LoginModal";
+import { api } from "./services/api";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [titulos, setTitulos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [generoSelecionado, setGeneroSelecionado] = useState("todos");
+  const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [busca, setBusca] = useState("");
+
+  // Autenticação & Modais
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [modalLoginAberto, setModalLoginAberto] = useState(false);
+  const [modalTituloAberto, setModalTituloAberto] = useState(false);
+  const [itemParaEditar, setItemParaEditar] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("@whattowatch:token");
+    if (token) setIsAdmin(true);
+  }, []);
+
+  const carregarTitulos = useCallback(async () => {
+    try {
+      setCarregando(true);
+      const dados = await api.getTitulos({
+        genero: generoSelecionado,
+        tipo: filtroTipo,
+        busca: busca,
+      });
+      setTitulos(dados || []);
+    } catch (err) {
+      console.error("Erro ao carregar títulos:", err);
+      setTitulos([]);
+    } finally {
+      setCarregando(false);
+    }
+  }, [generoSelecionado, filtroTipo, busca]);
+
+  useEffect(() => {
+    carregarTitulos();
+  }, [carregarTitulos]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("@whattowatch:token");
+    setIsAdmin(false);
+  };
+
+  const handleEditar = (item) => {
+    setItemParaEditar(item);
+    setModalTituloAberto(true);
+  };
+
+  const handleDeletar = async (id, nomeTitulo) => {
+    if (
+      confirm(
+        `Tem certeza que deseja excluir "${nomeTitulo || "este título"}"?`,
+      )
+    ) {
+      try {
+        await api.deletarTitulo(id);
+        carregarTitulos();
+      } catch (err) {
+        alert("Erro ao excluir título.");
+      }
+    }
+  };
+
+  const listaSegura = Array.isArray(titulos) ? titulos : [];
+  const filmes = listaSegura.filter((t) => t.tipo === "filme");
+  const series = listaSegura.filter((t) => t.tipo === "serie");
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#F7F6F2", // Branco-marfim neutro, sem tom amarelado
+        color: "#2D0A14",
+      }}
+    >
+      <Navbar
+        busca={busca}
+        setBusca={setBusca}
+        filtroTipo={filtroTipo}
+        setFiltroTipo={setFiltroTipo}
+        isAdmin={isAdmin}
+        onAbrirLogin={() => setModalLoginAberto(true)}
+        onAbrirCadastro={() => {
+          setItemParaEditar(null);
+          setModalTituloAberto(true);
+        }}
+        onLogout={handleLogout}
+      />
+
+      <main
+        style={{ maxWidth: "1280px", margin: "0 auto", padding: "1.5rem 1rem" }}
+      >
+        <FilterBar
+          generoSelecionado={generoSelecionado}
+          onSelectGenero={(genero) => setGeneroSelecionado(genero)}
+        />
+
+        {carregando ? (
+          <p style={{ textAlign: "center", color: "#838c76", padding: "3rem" }}>
+            Carregando catálogo...
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        ) : listaSegura.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#838c76", padding: "3rem" }}>
+            Nenhum título encontrado com esses filtros.
+          </p>
+        ) : (
+          <>
+            {/* Se houver filtro específico de tipo, exibe a lista correspondente */}
+            {filtroTipo === "todos" ? (
+              <>
+                {filmes.length > 0 && (
+                  <CarouselSection
+                    items={filmes}
+                    generoAtivo={
+                      generoSelecionado !== "todos"
+                        ? generoSelecionado
+                        : "Filmes"
+                    }
+                    isAdmin={isAdmin}
+                    onEditar={handleEditar}
+                    onDeletar={handleDeletar}
+                  />
+                )}
 
-      <div className="ticks"></div>
+                {series.length > 0 && (
+                  <CarouselSection
+                    items={series}
+                    generoAtivo={
+                      generoSelecionado !== "todos"
+                        ? generoSelecionado
+                        : "Séries"
+                    }
+                    isAdmin={isAdmin}
+                    onEditar={handleEditar}
+                    onDeletar={handleDeletar}
+                  />
+                )}
+              </>
+            ) : (
+              <CarouselSection
+                items={listaSegura}
+                generoAtivo={
+                  generoSelecionado !== "todos" ? generoSelecionado : filtroTipo
+                }
+                isAdmin={isAdmin}
+                onEditar={handleEditar}
+                onDeletar={handleDeletar}
+              />
+            )}
+          </>
+        )}
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {/* Modal de Login */}
+      <LoginModal
+        isOpen={modalLoginAberto}
+        onClose={() => setModalLoginAberto(false)}
+        onLoginSuccess={() => {
+          setIsAdmin(true);
+          setModalLoginAberto(false);
+        }}
+      />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Modal de Cadastro/Edição de Títulos */}
+      <MovieModal
+        isOpen={modalTituloAberto}
+        onClose={() => setModalTituloAberto(false)}
+        onSalvo={carregarTitulos}
+        itemParaEditar={itemParaEditar}
+      />
+    </div>
+  );
 }
-
-export default App
