@@ -26,5 +26,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/titulos", titleRoutes);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  console.log(` Servidor rodando em http://localhost:${PORT}`);
 });

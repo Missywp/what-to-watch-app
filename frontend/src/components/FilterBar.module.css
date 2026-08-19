@@ -3,6 +3,7 @@
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 2rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   display: flex;
 }
@@ -14,12 +15,11 @@
 .bar {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
   list-style: none;
   margin: 0 auto;
   padding: 0.5rem 1.5rem;
   width: max-content;
-  min-width: min-content;
 }
 
 .tabBtn {
@@ -35,6 +35,7 @@
   position: relative;
   transition: color 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tabBtn:hover {
@@ -54,4 +55,17 @@
   height: 2.5px;
   background-color: var(--accent-primary);
   border-radius: 2px 2px 0 0;
+}
+
+@media (max-width: 768px) {
+  .bar {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    gap: 1rem;
+  }
+
+  .tabBtn {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.25rem;
+  }
 }

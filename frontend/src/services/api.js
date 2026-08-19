@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : "https://what-to-watch-app.onrender.com/api";
 
 const authHeadersMultipart = () => {
   const token = localStorage.getItem("@whattowatch:token");
@@ -14,13 +16,13 @@ export const api = {
       query.append("tipo", params.tipo);
     if (params.busca) query.append("busca", params.busca);
 
-    const res = await fetch(`${API_URL}/titulos?${query.toString()}`);
+    const res = await fetch(`${BASE_URL}/titulos?${query.toString()}`);
     if (!res.ok) throw new Error("Erro ao buscar títulos");
     return res.json();
   },
 
   async criarTitulo(formData) {
-    const res = await fetch(`${API_URL}/titulos`, {
+    const res = await fetch(`${BASE_URL}/titulos`, {
       method: "POST",
       headers: authHeadersMultipart(),
       body: formData,
@@ -30,7 +32,7 @@ export const api = {
   },
 
   async atualizarTitulo(id, formData) {
-    const res = await fetch(`${API_URL}/titulos/${id}`, {
+    const res = await fetch(`${BASE_URL}/titulos/${id}`, {
       method: "PUT",
       headers: authHeadersMultipart(),
       body: formData,
@@ -40,7 +42,7 @@ export const api = {
   },
 
   async deletarTitulo(id) {
-    const res = await fetch(`${API_URL}/titulos/${id}`, {
+    const res = await fetch(`${BASE_URL}/titulos/${id}`, {
       method: "DELETE",
       headers: authHeadersMultipart(),
     });
@@ -49,7 +51,7 @@ export const api = {
   },
 
   async login(email, senha) {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, senha }),
