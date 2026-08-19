@@ -1,4 +1,4 @@
-# 🎬 WhatToWatch
+#  WhatToWatch
 
 Plataforma web para catálogo e gerenciamento de filmes e séries, com minhas avaliações e opniões, desenvolvida com autenticação segura e controle administrativo.
 
