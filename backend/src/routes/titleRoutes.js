@@ -3,17 +3,12 @@ import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import { autenticarToken } from "../middleware/auth.js";
 
 const router = Router();
 const prisma = new PrismaClient();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Garante o caminho absoluto e a criação da pasta uploads
-const uploadsDir = path.join(__dirname, "../../uploads");
+const uploadsDir = path.resolve("uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -21,9 +16,11 @@ if (!fs.existsSync(uploadsDir)) {
 const CINEMA_FALLBACK_URL =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
 
-// Configuração do Multer com caminho absoluto
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
@@ -40,7 +37,7 @@ const formatarParaResposta = (item) => ({
     typeof item.generos === "string" ? JSON.parse(item.generos) : item.generos,
 });
 
-// GET /api/titulos (Público)
+// GET /api/titulos
 router.get("/", async (req, res) => {
   try {
     const { genero, tipo, busca } = req.query;
@@ -74,7 +71,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/titulos (Upload de imagem + Cadastro)
+// POST /api/titulos
 router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
   const { titulo, tipo, generos, sinopse, nota, ano } = req.body;
 
@@ -113,7 +110,7 @@ router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
   }
 });
 
-// PUT /api/titulos/:id (Atualização)
+// PUT /api/titulos/:id
 router.put(
   "/:id",
   autenticarToken,
