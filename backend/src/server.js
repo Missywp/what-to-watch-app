@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import authRoutes from "./routes/authRoutes.js";
 import titleRoutes from "./routes/titleRoutes.js";
@@ -11,15 +12,21 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Garante que o caminho absoluto da pasta uploads exista
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Permite conexões de qualquer porta local (5173, 5174, 5175, etc.)
+// Habilita CORS
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// Servir os arquivos de imagem da pasta uploads
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Servir os arquivos estáticos de imagem
+app.use("/uploads", express.static(uploadDir));
 
 // Rotas
 app.use("/api/auth", authRoutes);

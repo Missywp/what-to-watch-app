@@ -2,18 +2,29 @@ import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { autenticarToken } from "../middleware/auth.js";
 
 const router = Router();
 const prisma = new PrismaClient();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Garante o caminho absoluto e a criação da pasta uploads
+const uploadsDir = path.join(__dirname, "../../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const CINEMA_FALLBACK_URL =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
 
-// Configuração do Multer para salvar imagens com nomes únicos
+// Configuração do Multer com caminho absoluto
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -43,14 +54,16 @@ router.get("/", async (req, res) => {
       resultado = resultado.filter((t) => t.tipo === tipo);
     }
     if (genero && genero !== "todos") {
-      resultado = resultado.filter((t) => t.generos.includes(genero));
+      resultado = resultado.filter(
+        (t) => Array.isArray(t.generos) && t.generos.includes(genero),
+      );
     }
     if (busca) {
       const q = busca.toLowerCase();
       resultado = resultado.filter(
         (t) =>
           t.titulo.toLowerCase().includes(q) ||
-          t.sinopse.toLowerCase().includes(q),
+          (t.sinopse && t.sinopse.toLowerCase().includes(q)),
       );
     }
 
@@ -65,24 +78,30 @@ router.get("/", async (req, res) => {
 router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
   const { titulo, tipo, generos, sinopse, nota, ano } = req.body;
 
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
   const posterUrl = req.file
-    ? `http://localhost:5000/uploads/${req.file.filename}`
+    ? `${baseUrl}/uploads/${req.file.filename}`
     : CINEMA_FALLBACK_URL;
 
   try {
     const parsedGeneros =
       typeof generos === "string"
-        ? generos.split(",").map((g) => g.trim().toLowerCase())
+        ? generos
+            .split(",")
+            .map((g) => g.trim().toLowerCase())
+            .filter(Boolean)
         : generos;
 
     const novoTitulo = await prisma.titulo.create({
       data: {
-        titulo,
-        tipo,
+        titulo: String(titulo),
+        tipo: String(tipo || "filme"),
         generos: JSON.stringify(parsedGeneros || []),
-        sinopse,
-        nota: parseFloat(nota),
-        ano: parseInt(ano, 10),
+        sinopse: String(sinopse || ""),
+        nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
+        ano: isNaN(parseInt(ano, 10))
+          ? new Date().getFullYear()
+          : parseInt(ano, 10),
         posterUrl,
       },
     });
@@ -94,7 +113,7 @@ router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
   }
 });
 
-// PUT /api/titulos/:id (Atualização com upload opcional e exclusão de imagem)
+// PUT /api/titulos/:id (Atualização)
 router.put(
   "/:id",
   autenticarToken,
@@ -105,21 +124,29 @@ router.put(
       req.body;
 
     try {
+      const parsedGeneros =
+        typeof generos === "string"
+          ? generos
+              .split(",")
+              .map((g) => g.trim().toLowerCase())
+              .filter(Boolean)
+          : generos;
+
       const dadosAtualizados = {
-        titulo,
-        tipo,
-        generos: JSON.stringify(
-          typeof generos === "string"
-            ? generos.split(",").map((g) => g.trim().toLowerCase())
-            : generos,
-        ),
-        sinopse,
-        nota: parseFloat(nota),
-        ano: parseInt(ano, 10),
+        titulo: String(titulo),
+        tipo: String(tipo || "filme"),
+        generos: JSON.stringify(parsedGeneros || []),
+        sinopse: String(sinopse || ""),
+        nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
+        ano: isNaN(parseInt(ano, 10))
+          ? new Date().getFullYear()
+          : parseInt(ano, 10),
       };
 
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+
       if (req.file) {
-        dadosAtualizados.posterUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+        dadosAtualizados.posterUrl = `${baseUrl}/uploads/${req.file.filename}`;
       } else if (removerImagem === "true") {
         dadosAtualizados.posterUrl = CINEMA_FALLBACK_URL;
       }
