@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { X, PlusCircle, Edit3, UploadCloud, Trash2 } from "lucide-react";
+import {
+  X,
+  PlusCircle,
+  Edit3,
+  Trash2,
+  Link as LinkIcon,
+  Image as ImageIcon,
+} from "lucide-react";
 import { api } from "../services/api";
 import styles from "./MovieModal.module.css";
 
@@ -15,9 +22,7 @@ export default function MovieModal({
   const [sinopse, setSinopse] = useState("");
   const [nota, setNota] = useState(7.5);
   const [ano, setAno] = useState(2024);
-  const [arquivoImagem, setArquivoImagem] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [removerImagem, setRemoverImagem] = useState(false);
+  const [posterUrl, setPosterUrl] = useState("");
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
@@ -43,10 +48,7 @@ export default function MovieModal({
       setSinopse(itemParaEditar.sinopse || "");
       setNota(itemParaEditar.nota || 7.5);
       setAno(itemParaEditar.ano || 2024);
-
-      setPreview(itemParaEditar.posterUrl || "");
-      setArquivoImagem(null);
-      setRemoverImagem(false);
+      setPosterUrl(itemParaEditar.posterUrl || "");
     } else {
       setTitulo("");
       setTipo("filme");
@@ -54,54 +56,31 @@ export default function MovieModal({
       setSinopse("");
       setNota(7.5);
       setAno(2024);
-      setArquivoImagem(null);
-      setPreview("");
-      setRemoverImagem(false);
+      setPosterUrl("");
     }
   }, [itemParaEditar, isOpen]);
 
   if (!isOpen) return null;
-
-  const handleArquivoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setArquivoImagem(file);
-      setPreview(URL.createObjectURL(file));
-      setRemoverImagem(false);
-    }
-  };
-
-  const handleRemoverImagem = () => {
-    setArquivoImagem(null);
-    setPreview("");
-    setRemoverImagem(true);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCarregando(true);
 
     try {
-      const formData = new FormData();
-      formData.append("titulo", titulo);
-      formData.append("tipo", tipo);
-      formData.append("generos", generos);
-      formData.append("sinopse", sinopse);
-      formData.append("nota", nota);
-      formData.append("ano", ano);
-
-      if (arquivoImagem) {
-        formData.append("imagem", arquivoImagem);
-      }
-
-      if (removerImagem) {
-        formData.append("removerImagem", "true");
-      }
+      const payload = {
+        titulo,
+        tipo,
+        generos,
+        sinopse,
+        nota,
+        ano,
+        posterUrl: posterUrl.trim(),
+      };
 
       if (itemParaEditar) {
-        await api.atualizarTitulo(itemParaEditar.id, formData);
+        await api.atualizarTitulo(itemParaEditar.id, payload);
       } else {
-        await api.criarTitulo(formData);
+        await api.criarTitulo(payload);
       }
 
       onSalvo();
@@ -179,7 +158,7 @@ export default function MovieModal({
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Minha Avaliação </label>
+              <label className={styles.label}>Minha Avaliação</label>
               <input
                 type="number"
                 step="0.1"
@@ -198,28 +177,46 @@ export default function MovieModal({
               <input
                 value={generos}
                 onChange={(e) => setGeneros(e.target.value)}
-                placeholder="acao, terror, ficcao"
+                placeholder="acao, terror, comedia"
                 className={styles.input}
               />
             </div>
           </div>
 
-          {/* Campo de Imagem */}
+          {/* Campo de URL com prévia visual */}
           <div className={styles.field}>
-            <label className={styles.label}>Capa / Pôster</label>
+            <label className={styles.label}>
+              <span
+                style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}
+              >
+                <LinkIcon size={14} /> URL da Imagem / Pôster
+              </span>
+            </label>
+            <input
+              type="url"
+              value={posterUrl}
+              onChange={(e) => setPosterUrl(e.target.value)}
+              placeholder="https://exemplo.com/imagem.jpg"
+              className={styles.input}
+            />
 
-            {preview ? (
+            {posterUrl.trim() && (
               <div
                 style={{
                   position: "relative",
                   display: "inline-block",
                   width: "fit-content",
-                  margin: "0 auto",
+                  margin: "0.75rem auto 0 auto",
                 }}
               >
                 <img
-                  src={preview}
-                  alt="Prévia"
+                  src={posterUrl.trim()}
+                  alt="Prévia do pôster"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src =
+                      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
+                  }}
                   style={{
                     maxHeight: "140px",
                     borderRadius: "0.5rem",
@@ -230,7 +227,7 @@ export default function MovieModal({
                 />
                 <button
                   type="button"
-                  onClick={handleRemoverImagem}
+                  onClick={() => setPosterUrl("")}
                   style={{
                     position: "absolute",
                     top: "6px",
@@ -239,46 +236,18 @@ export default function MovieModal({
                     color: "#EFEFC9",
                     border: "none",
                     borderRadius: "50%",
-                    width: "28px",
-                    height: "28px",
+                    width: "26px",
+                    height: "26px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",
                   }}
-                  title="Excluir imagem"
+                  title="Limpar URL"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </div>
-            ) : (
-              <label
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "1.25rem",
-                  border: "2px dashed #4a2d2b",
-                  borderRadius: "0.5rem",
-                  cursor: "pointer",
-                  backgroundColor: "#2F1B1A",
-                  gap: "0.5rem",
-                }}
-              >
-                <UploadCloud size={24} color="#941832" />
-                <span style={{ fontSize: "0.8rem", color: "#d6d6b2" }}>
-                  {arquivoImagem
-                    ? arquivoImagem.name
-                    : "Clique para selecionar uma imagem (PNG, JPG)"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleArquivoChange}
-                  style={{ display: "none" }}
-                />
-              </label>
             )}
           </div>
 

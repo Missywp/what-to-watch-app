@@ -31,6 +31,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Remove acentos e padroniza para minúsculas
+const normalizar = (str) =>
+  String(str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 const formatarParaResposta = (item) => ({
   ...item,
   generos:
@@ -51,16 +59,19 @@ router.get("/", async (req, res) => {
       resultado = resultado.filter((t) => t.tipo === tipo);
     }
     if (genero && genero !== "todos") {
+      const generoBuscado = normalizar(genero);
       resultado = resultado.filter(
-        (t) => Array.isArray(t.generos) && t.generos.includes(genero),
+        (t) =>
+          Array.isArray(t.generos) &&
+          t.generos.some((g) => normalizar(g) === generoBuscado),
       );
     }
     if (busca) {
-      const q = busca.toLowerCase();
+      const q = normalizar(busca);
       resultado = resultado.filter(
         (t) =>
-          t.titulo.toLowerCase().includes(q) ||
-          (t.sinopse && t.sinopse.toLowerCase().includes(q)),
+          normalizar(t.titulo).includes(q) ||
+          (t.sinopse && normalizar(t.sinopse).includes(q)),
       );
     }
 
@@ -73,33 +84,48 @@ router.get("/", async (req, res) => {
 
 // POST /api/titulos
 router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
-  const { titulo, tipo, generos, sinopse, nota, ano } = req.body;
+  const {
+    titulo,
+    tipo,
+    generos,
+    sinopse,
+    nota,
+    ano,
+    posterUrl: urlManual,
+  } = req.body;
 
   const baseUrl = `${req.protocol}://${req.get("host")}`;
-  const posterUrl = req.file
-    ? `${baseUrl}/uploads/${req.file.filename}`
-    : CINEMA_FALLBACK_URL;
+
+  // Prioridade: 1º URL enviada no campo -> 2º Arquivo salvo em disco -> 3º Imagem padrão
+  let posterFinal = CINEMA_FALLBACK_URL;
+  if (urlManual && urlManual.trim() !== "") {
+    posterFinal = urlManual.trim();
+  } else if (req.file) {
+    posterFinal = `${baseUrl}/uploads/${req.file.filename}`;
+  }
 
   try {
     const parsedGeneros =
       typeof generos === "string"
         ? generos
             .split(",")
-            .map((g) => g.trim().toLowerCase())
+            .map((g) => normalizar(g))
             .filter(Boolean)
-        : generos;
+        : Array.isArray(generos)
+          ? generos.map((g) => normalizar(g))
+          : [];
 
     const novoTitulo = await prisma.titulo.create({
       data: {
         titulo: String(titulo),
         tipo: String(tipo || "filme"),
-        generos: JSON.stringify(parsedGeneros || []),
+        generos: JSON.stringify(parsedGeneros),
         sinopse: String(sinopse || ""),
         nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
         ano: isNaN(parseInt(ano, 10))
           ? new Date().getFullYear()
           : parseInt(ano, 10),
-        posterUrl,
+        posterUrl: posterFinal,
       },
     });
 
@@ -117,22 +143,32 @@ router.put(
   upload.single("imagem"),
   async (req, res) => {
     const { id } = req.params;
-    const { titulo, tipo, generos, sinopse, nota, ano, removerImagem } =
-      req.body;
+    const {
+      titulo,
+      tipo,
+      generos,
+      sinopse,
+      nota,
+      ano,
+      posterUrl: urlManual,
+      removerImagem,
+    } = req.body;
 
     try {
       const parsedGeneros =
         typeof generos === "string"
           ? generos
               .split(",")
-              .map((g) => g.trim().toLowerCase())
+              .map((g) => normalizar(g))
               .filter(Boolean)
-          : generos;
+          : Array.isArray(generos)
+            ? generos.map((g) => normalizar(g))
+            : [];
 
       const dadosAtualizados = {
         titulo: String(titulo),
         tipo: String(tipo || "filme"),
-        generos: JSON.stringify(parsedGeneros || []),
+        generos: JSON.stringify(parsedGeneros),
         sinopse: String(sinopse || ""),
         nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
         ano: isNaN(parseInt(ano, 10))
@@ -142,7 +178,9 @@ router.put(
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-      if (req.file) {
+      if (urlManual && urlManual.trim() !== "") {
+        dadosAtualizados.posterUrl = urlManual.trim();
+      } else if (req.file) {
         dadosAtualizados.posterUrl = `${baseUrl}/uploads/${req.file.filename}`;
       } else if (removerImagem === "true") {
         dadosAtualizados.posterUrl = CINEMA_FALLBACK_URL;
