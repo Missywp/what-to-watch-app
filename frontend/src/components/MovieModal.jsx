@@ -18,7 +18,7 @@ export default function MovieModal({
 }) {
   const [titulo, setTitulo] = useState("");
   const [tipo, setTipo] = useState("filme");
-  const [generos, setGeneros] = useState("terror, suspense");
+  const [generos, setGeneros] = useState("terror, suspense...");
   const [sinopse, setSinopse] = useState("");
   const [nota, setNota] = useState(7.5);
   const [ano, setAno] = useState(2024);
