@@ -48,7 +48,7 @@ export default function Navbar({
           />
         </div>
 
-        {/* 3. Filtros Tipo (Todos / Filmes / Séries) */}
+        {/* 3. Filtros Tipo */}
         <div className={styles.typeFilters}>
           <button
             type="button"
@@ -73,11 +73,10 @@ export default function Navbar({
           </button>
         </div>
 
-        {/* 4. Área de Ações/Admin mantendo inline-flex rígido */}
+        {/* 4. Ações de Admin / Login (Com estilo travado contra quebra) */}
         <div
-          className={styles.authBox}
           style={{
-            display: "flex",
+            display: "inline-flex",
             flexDirection: "row",
             alignItems: "center",
             gap: "0.5rem",
@@ -91,6 +90,12 @@ export default function Navbar({
                 type="button"
                 onClick={onAbrirCadastro}
                 className={styles.btnAdd}
+                style={{
+                  margin: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                }}
               >
                 <Plus size={16} /> Adicionar
               </button>
@@ -99,6 +104,12 @@ export default function Navbar({
                 onClick={onLogout}
                 title="Sair do modo Admin"
                 className={styles.btnLogout}
+                style={{
+                  margin: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
                 <LogOut size={16} />
               </button>
