@@ -22,6 +22,7 @@ export default function Navbar({
   return (
     <header className={styles.header}>
       <div className={styles.container}>
+        {/* 1. Logo */}
         <div
           className={styles.logo}
           onClick={() => {
@@ -35,6 +36,7 @@ export default function Navbar({
           </span>
         </div>
 
+        {/* 2. Campo de Busca */}
         <div className={styles.searchBox}>
           <Search className={styles.searchIcon} />
           <input
@@ -46,6 +48,7 @@ export default function Navbar({
           />
         </div>
 
+        {/* 3. Filtros Tipo (Todos / Filmes / Séries) */}
         <div className={styles.typeFilters}>
           <button
             type="button"
@@ -70,13 +73,29 @@ export default function Navbar({
           </button>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {/* 4. Área de Ações/Admin mantendo inline-flex rígido */}
+        <div
+          className={styles.authBox}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "0.5rem",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+          }}
+        >
           {isAdmin ? (
             <>
-              <button onClick={onAbrirCadastro} className={styles.btnAdd}>
+              <button
+                type="button"
+                onClick={onAbrirCadastro}
+                className={styles.btnAdd}
+              >
                 <Plus size={16} /> Adicionar
               </button>
               <button
+                type="button"
                 onClick={onLogout}
                 title="Sair do modo Admin"
                 className={styles.btnLogout}
@@ -85,7 +104,11 @@ export default function Navbar({
               </button>
             </>
           ) : (
-            <button onClick={onAbrirLogin} className={styles.btnLogin}>
+            <button
+              type="button"
+              onClick={onAbrirLogin}
+              className={styles.btnLogin}
+            >
               <LogIn size={15} /> Entrar
             </button>
           )}
