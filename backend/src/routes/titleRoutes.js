@@ -1,37 +1,14 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { autenticarToken } from "../middleware/auth.js";
 
 const router = Router();
 const prisma = new PrismaClient();
 
-const uploadsDir = path.resolve("uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 const CINEMA_FALLBACK_URL =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
-
-// Remove acentos e padroniza para minúsculas
+// Normaliza strings removendo acentos e convertendo para minúsculas
 const normalizar = (str) =>
   String(str || "")
     .normalize("NFD")
@@ -83,26 +60,13 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/titulos
-router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
-  const {
-    titulo,
-    tipo,
-    generos,
-    sinopse,
-    nota,
-    ano,
-    posterUrl: urlManual,
-  } = req.body;
+router.post("/", autenticarToken, async (req, res) => {
+  const { titulo, tipo, generos, sinopse, nota, ano, posterUrl } = req.body;
 
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
-
-  // Prioridade: 1º URL enviada no campo -> 2º Arquivo salvo em disco -> 3º Imagem padrão
-  let posterFinal = CINEMA_FALLBACK_URL;
-  if (urlManual && urlManual.trim() !== "") {
-    posterFinal = urlManual.trim();
-  } else if (req.file) {
-    posterFinal = `${baseUrl}/uploads/${req.file.filename}`;
-  }
+  const posterFinal =
+    posterUrl && String(posterUrl).trim() !== ""
+      ? String(posterUrl).trim()
+      : CINEMA_FALLBACK_URL;
 
   try {
     const parsedGeneros =
@@ -137,67 +101,47 @@ router.post("/", autenticarToken, upload.single("imagem"), async (req, res) => {
 });
 
 // PUT /api/titulos/:id
-router.put(
-  "/:id",
-  autenticarToken,
-  upload.single("imagem"),
-  async (req, res) => {
-    const { id } = req.params;
-    const {
-      titulo,
-      tipo,
-      generos,
-      sinopse,
-      nota,
-      ano,
-      posterUrl: urlManual,
-      removerImagem,
-    } = req.body;
+router.put("/:id", autenticarToken, async (req, res) => {
+  const { id } = req.params;
+  const { titulo, tipo, generos, sinopse, nota, ano, posterUrl } = req.body;
 
-    try {
-      const parsedGeneros =
-        typeof generos === "string"
-          ? generos
-              .split(",")
-              .map((g) => normalizar(g))
-              .filter(Boolean)
-          : Array.isArray(generos)
-            ? generos.map((g) => normalizar(g))
-            : [];
+  try {
+    const parsedGeneros =
+      typeof generos === "string"
+        ? generos
+            .split(",")
+            .map((g) => normalizar(g))
+            .filter(Boolean)
+        : Array.isArray(generos)
+          ? generos.map((g) => normalizar(g))
+          : [];
 
-      const dadosAtualizados = {
-        titulo: String(titulo),
-        tipo: String(tipo || "filme"),
-        generos: JSON.stringify(parsedGeneros),
-        sinopse: String(sinopse || ""),
-        nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
-        ano: isNaN(parseInt(ano, 10))
-          ? new Date().getFullYear()
-          : parseInt(ano, 10),
-      };
+    const dadosAtualizados = {
+      titulo: String(titulo),
+      tipo: String(tipo || "filme"),
+      generos: JSON.stringify(parsedGeneros),
+      sinopse: String(sinopse || ""),
+      nota: isNaN(parseFloat(nota)) ? 0 : parseFloat(nota),
+      ano: isNaN(parseInt(ano, 10))
+        ? new Date().getFullYear()
+        : parseInt(ano, 10),
+      posterUrl:
+        posterUrl && String(posterUrl).trim() !== ""
+          ? String(posterUrl).trim()
+          : CINEMA_FALLBACK_URL,
+    };
 
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const tituloAtualizado = await prisma.titulo.update({
+      where: { id },
+      data: dadosAtualizados,
+    });
 
-      if (urlManual && urlManual.trim() !== "") {
-        dadosAtualizados.posterUrl = urlManual.trim();
-      } else if (req.file) {
-        dadosAtualizados.posterUrl = `${baseUrl}/uploads/${req.file.filename}`;
-      } else if (removerImagem === "true") {
-        dadosAtualizados.posterUrl = CINEMA_FALLBACK_URL;
-      }
-
-      const tituloAtualizado = await prisma.titulo.update({
-        where: { id },
-        data: dadosAtualizados,
-      });
-
-      return res.json(formatarParaResposta(tituloAtualizado));
-    } catch (error) {
-      console.error("Erro ao atualizar título:", error);
-      return res.status(500).json({ mensagem: "Erro ao atualizar título." });
-    }
-  },
-);
+    return res.json(formatarParaResposta(tituloAtualizado));
+  } catch (error) {
+    console.error("Erro ao atualizar título:", error);
+    return res.status(500).json({ mensagem: "Erro ao atualizar título." });
+  }
+});
 
 // DELETE /api/titulos/:id
 router.delete("/:id", autenticarToken, async (req, res) => {

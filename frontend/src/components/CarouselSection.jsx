@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Edit3, Trash2 } from "lucide-react";
 import styles from "./CarouselSection.module.css";
 
+const FALLBACK_POSTER =
+  "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
+
 export default function CarouselSection({
   items = [],
   generoAtivo = "todos",
@@ -34,8 +37,13 @@ export default function CarouselSection({
   };
 
   const getPosterUrl = (url) => {
-    if (!url) return "";
-    return url.startsWith("http") ? url : `http://localhost:5000${url}`;
+    if (!url || typeof url !== "string") return FALLBACK_POSTER;
+    const cleanUrl = url.trim();
+    if (cleanUrl.startsWith("http://localhost")) return FALLBACK_POSTER;
+    if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+      return cleanUrl;
+    }
+    return FALLBACK_POSTER;
   };
 
   const formatarTituloSecao = (texto) => {
@@ -78,6 +86,10 @@ export default function CarouselSection({
                 <img
                   src={getPosterUrl(item.posterUrl)}
                   alt={item.titulo}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_POSTER;
+                  }}
                   className={styles.slideImage}
                 />
               </div>
@@ -139,6 +151,10 @@ export default function CarouselSection({
           <img
             src={getPosterUrl(itemAtivo.posterUrl)}
             alt={itemAtivo.titulo}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = FALLBACK_POSTER;
+            }}
             className={styles.detailThumbnail}
           />
         </div>
