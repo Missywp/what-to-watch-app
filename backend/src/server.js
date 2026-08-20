@@ -14,8 +14,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
+const PORT = process.env.PORT || 10000;
 // Configuração robusta de CORS liberando para a Vercel e requisições públicas
 app.use(
   cors({
