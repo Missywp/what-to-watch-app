@@ -30,7 +30,7 @@ export default function Navbar({
           }}
         >
           <span>
-            What<span className={styles.logoAccent}>To</span>Watch
+            Wha<span className={styles.logoAccent}>To</span>Watch
           </span>
         </div>
 
