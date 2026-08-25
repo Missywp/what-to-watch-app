@@ -14,4 +14,4 @@ https://what-to-watch-app-olive.vercel.app
   * Login com token JWT.
   * Cadastro de títulos com upload de pôster, nota, gênero e sinopse.
   * Edição e remoção de registros.
-* **Layout Responsivo:** 
+* **Layout Responsivo** 
