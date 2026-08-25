@@ -15,7 +15,6 @@ if (!fs.existsSync(uploadDir)) {
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-// Configuração robusta de CORS liberando para a Vercel e requisições públicas
 app.use(
   cors({
     origin: "*",
@@ -28,7 +27,6 @@ app.use(express.json());
 
 app.use("/uploads", express.static(uploadDir));
 
-// Rota base para teste rápido de status
 app.get("/", (req, res) => {
   res.send("API WhatToWatch rodando perfeitamente!");
 });
@@ -36,7 +34,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/titulos", titleRoutes);
 
-// Obrigatório para o Render: escutar em '0.0.0.0'
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

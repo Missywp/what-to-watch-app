@@ -1,21 +1,18 @@
 :root {
-  /* Superfícies e Fundos (Paleta Clara e Neutra) */
-  --bg-main: #f7f6f2; /* Fundo principal da página (branco-marfim neutro) */
-  --bg-surface: #ffffff; /* Fundo de modais, cards de detalhe e botões */
-  --bg-card: #eceae0; /* Fundo dos cards do slider e inputs */
-  --border-color: #e2dfc9; /* Bordas sutis */
-  --border-strong: #d5d1b8; /* Bordas destacadas (inputs e divisores) */
+  --bg-main: #f7f6f2;
+  --bg-surface: #ffffff;
+  --bg-card: #eceae0;
+  --border-color: #e2dfc9;
+  --border-strong: #d5d1b8;
 
-  /* Cores de Destaque */
-  --accent-primary: #7a142c; /* Vinho rubro principal */
-  --accent-hover: #5c0f21; /* Vinho escuro para hover */
-  --accent-secondary: #8c6a75; /* Ameixa suave/neutro */
+  --accent-primary: #7a142c;
+  --accent-hover: #5c0f21;
+  --accent-secondary: #8c6a75;
 
-  /* Tipografia */
-  --text-primary: #2d0a14; /* Ameixa profundo para títulos e textos principais */
-  --text-secondary: #4d333c; /* Ameixa médio para sinopse e descrições */
-  --text-muted: #8c6a75; /* Rótulos, anos e metadados */
-  --text-light: #ffffff; /* Texto claro em botões vinho */
+  --text-primary: #2d0a14;
+  --text-secondary: #4d333c;
+  --text-muted: #8c6a75;
+  --text-light: #ffffff;
 }
 
 * {

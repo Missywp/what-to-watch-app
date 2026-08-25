@@ -13,7 +13,6 @@ export default function App() {
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [busca, setBusca] = useState("");
 
-  // Autenticação & Modais
   const [isAdmin, setIsAdmin] = useState(false);
   const [modalLoginAberto, setModalLoginAberto] = useState(false);
   const [modalTituloAberto, setModalTituloAberto] = useState(false);
@@ -114,7 +113,6 @@ export default function App() {
           </p>
         ) : (
           <>
-            {/* Se houver filtro específico de tipo, exibe a lista correspondente */}
             {filtroTipo === "todos" ? (
               <>
                 {filmes.length > 0 && (
@@ -160,7 +158,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal de Login */}
       <LoginModal
         isOpen={modalLoginAberto}
         onClose={() => setModalLoginAberto(false)}
@@ -170,7 +167,6 @@ export default function App() {
         }}
       />
 
-      {/* Modal de Cadastro/Edição de Títulos */}
       <MovieModal
         isOpen={modalTituloAberto}
         onClose={() => setModalTituloAberto(false)}

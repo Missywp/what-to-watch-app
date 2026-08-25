@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 const CINEMA_FALLBACK_URL =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
 
-// Normaliza strings removendo acentos e convertendo para minúsculas
 const normalizar = (str) =>
   String(str || "")
     .normalize("NFD")
@@ -59,7 +58,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/titulos
 router.post("/", autenticarToken, async (req, res) => {
   const { titulo, tipo, generos, sinopse, nota, ano, posterUrl } = req.body;
 
@@ -100,7 +98,6 @@ router.post("/", autenticarToken, async (req, res) => {
   }
 });
 
-// PUT /api/titulos/:id
 router.put("/:id", autenticarToken, async (req, res) => {
   const { id } = req.params;
   const { titulo, tipo, generos, sinopse, nota, ano, posterUrl } = req.body;
@@ -143,7 +140,6 @@ router.put("/:id", autenticarToken, async (req, res) => {
   }
 });
 
-// DELETE /api/titulos/:id
 router.delete("/:id", autenticarToken, async (req, res) => {
   const { id } = req.params;
   try {

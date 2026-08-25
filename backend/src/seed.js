@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 async function main() {
   const senhaHash = await bcrypt.hash("mel2005admin", 10);
 
-  // Limpa e recria o admin original
   await prisma.user.deleteMany({});
   await prisma.user.create({
     data: {
