@@ -22,7 +22,6 @@ export default function Navbar({
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        {/* 1. Logo */}
         <div
           className={styles.logo}
           onClick={() => {
@@ -30,13 +29,11 @@ export default function Navbar({
             setBusca("");
           }}
         >
-          <Clapperboard className={styles.logoIcon} />
           <span>
             What<span className={styles.logoAccent}>To</span>Watch
           </span>
         </div>
 
-        {/* 2. Campo de Busca */}
         <div className={styles.searchBox}>
           <Search className={styles.searchIcon} />
           <input
@@ -48,7 +45,6 @@ export default function Navbar({
           />
         </div>
 
-        {/* 3. Filtros Tipo */}
         <div className={styles.typeFilters}>
           <button
             type="button"
@@ -73,7 +69,6 @@ export default function Navbar({
           </button>
         </div>
 
-        {/* 4. Ações de Admin / Login (Com estilo travado contra quebra) */}
         <div
           style={{
             display: "inline-flex",
