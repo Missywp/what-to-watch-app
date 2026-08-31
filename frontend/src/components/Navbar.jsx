@@ -1,12 +1,4 @@
-import {
-  Film,
-  Tv,
-  Clapperboard,
-  Plus,
-  LogIn,
-  LogOut,
-  Search,
-} from "lucide-react";
+import { Plus, LogOut, Search } from "lucide-react";
 import styles from "./Navbar.module.css";
 
 export default function Navbar({
@@ -58,14 +50,14 @@ export default function Navbar({
             onClick={() => setFiltroTipo("filme")}
             className={`${styles.typeBtn} ${filtroTipo === "filme" ? styles.typeBtnActive : ""}`}
           >
-            <Film size={14} /> Filmes
+            Filmes
           </button>
           <button
             type="button"
             onClick={() => setFiltroTipo("serie")}
             className={`${styles.typeBtn} ${filtroTipo === "serie" ? styles.typeBtnActive : ""}`}
           >
-            <Tv size={14} /> Séries
+            Séries
           </button>
         </div>
 
@@ -115,7 +107,7 @@ export default function Navbar({
               onClick={onAbrirLogin}
               className={styles.btnLogin}
             >
-              <LogIn size={15} /> Entrar
+              Entrar
             </button>
           )}
         </div>

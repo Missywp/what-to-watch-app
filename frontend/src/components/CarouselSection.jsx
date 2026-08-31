@@ -59,7 +59,6 @@ export default function CarouselSection({
   return (
     <section className={styles.section}>
       <header className={styles.headerSecao}>
-        <span className={styles.tagSecao}>Que eu gosto de maratonar</span>
         <h2 className={styles.tituloSecao}>
           {formatarTituloSecao(generoAtivo)}
         </h2>
@@ -140,23 +139,11 @@ export default function CarouselSection({
             <span className={styles.metaYear}>{itemAtivo.ano}</span>
             <span className={styles.metaDivider}>•</span>
             <span className={styles.metaRating}>
-              ★ {itemAtivo.nota} <small>/10</small>
+              {itemAtivo.nota} <small>/10</small>
             </span>
           </div>
 
           <p className={styles.detailDesc}>{itemAtivo.sinopse}</p>
-        </div>
-
-        <div className={styles.detailsPosterWrapper}>
-          <img
-            src={getPosterUrl(itemAtivo.posterUrl)}
-            alt={itemAtivo.titulo}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = FALLBACK_POSTER;
-            }}
-            className={styles.detailThumbnail}
-          />
         </div>
       </div>
     </section>
